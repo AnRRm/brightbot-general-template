@@ -1,0 +1,1 @@
+# brightbot-general-template
