@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -6,6 +6,7 @@ app.use(bodyParser.json());
 
 // Load routes
 app.post('/weather', getWeather);
+app.post('/greetings', getGreetingReply);
 app.post('/actualitesante', getActualiteSante);
 app.post('/actualiteeconomique', getActualiteEconomique);
 app.post('/actualitesportive', getActualiteSportive);
@@ -47,6 +48,20 @@ function getweatherpicture(description)
         ret = 'http://icons.iconarchive.com/icons/icons8/ios7/128/Weather-Partly-Cloudy-Rain-icon.png';
 	} 
 	return ret;
+}
+
+
+function getGreetingReply(req, res) {
+	
+	var userName = req.body.conversation.participant_data.userName;
+	
+	//anas
+	res.json({
+	replies: [
+	{ type: 'text', content: 'Bonjour ' + userName + '  🙂 '  },
+	{ type: 'text', content: 'Je suis l\'outil d\'assistance virtuelle de BrightBot. Je suis en mesure de répondre à beaucoup de questions par rapport à BrightBot, je peux aussi te donner les news, la météo, ou encore les horaires de prières... il suffit de demander..'}
+	],
+	});
 }
 
 function getWeather(req, res) {
