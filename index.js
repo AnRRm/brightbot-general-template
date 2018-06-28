@@ -4,15 +4,17 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// Load routes
-app.post('/weather', getWeather);
-app.post('/greetings', getGreetingReply);
-app.post('/actualitesante', getActualiteSante);
-app.post('/actualiteeconomique', getActualiteEconomique);
-app.post('/actualitesportive', getActualiteSportive);
-app.post('/actualiteculturelle', getActualiteCulturelle);
-app.post('/actualitedivers', getActualiteDivers);
-app.post('/athan', getAthan);
+// Load routes by using express utility
+app.post('/weather',				getWeather);
+app.post('/greetings', 				getGreetingReply);
+app.post('/actualitesante',			getActualiteSante);				// Currently not in use
+app.post('/actualiteeconomique',	getActualiteEconomique);
+app.post('/actualitesportive',		getActualiteSportive);
+app.post('/actualiteculturelle',	getActualiteCulturelle);		// Currently not in use
+app.post('/actualitedivers',		getActualiteDivers);
+app.post('/athan', 					getAthan);
+
+
 app.post('/errors', function (req, res) { 
   console.error(req.body);
   res.sendStatus(200);
@@ -22,6 +24,7 @@ app.post('/errors', function (req, res) {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(` :) App is listening on port ${PORT}`));
 
+// this function must be moved to utils
 function getweatherpicture(description)
 {
 	ret = '';
@@ -69,8 +72,9 @@ function getWeather(req, res) {
 	const location = req.body.conversation.memory.location;
 	const datetime = req.body.conversation.memory.datetime;
 	const weather = require('openweathermap-js');
+
 	weather.defaults({
-        appid: '681f922539f01fc8d6bd4cd04de6c94a',
+        appid: process.env.OPENWMAP_ID,
         method: 'name',
         mode: 'json',
         units: 'metric',
@@ -95,13 +99,12 @@ function getWeather(req, res) {
 	{
 		res.json({
 		replies: [
-		{ type: 'text', content: 'Désolé Je n\'arrive pas vous indiquer la météo à ' + location.raw + ' le ' + datetime.raw}
+		{ type: 'text', content: 'Désolé Je n\'arrive pas vous indiquer la météo à ' + capitalizeFirstLetter(location.raw) + ' le ' + datetime.raw}
 		],
 		});
 	}
 	else
 	{
-		//console.log('diff = '+ (parseInt(weatherHolder.dt)-parseInt(timeStamp)));
 		res.json({
 			replies: [
 						{ type: 'picture', content: getweatherpicture(weatherHolder.weather[0].description ) },
@@ -122,14 +125,15 @@ function getWeather(req, res) {
 	});	
 }
 
+// TODO: This function is not in user actualy
 function getActualiteSante(req,res)
 {
 	
 	const unirest = require('unirest');
 	const replies = [];
-	//console.log('getActualiteSante');
+	
 	// NEWS API URL
-	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=health&apiKey=0dfc9750fdec4abe8f4faa8adff562ad';
+	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=health&apiKey=' + process.env.NEWSAPI_TOKEN;
 
 	// send http get request
 	unirest.get(url)
@@ -164,7 +168,7 @@ function getActualiteEconomique(req,res)
 	const replies = [];
 
 	// NEWS API URL
-	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=business&apiKey=0dfc9750fdec4abe8f4faa8adff562ad';
+	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=business&apiKey=' + process.env.NEWSAPI_TOKEN;
 
 	// send http get request
 	unirest.get(url)
@@ -199,7 +203,7 @@ function getActualiteSportive(req,res)
 	const replies = [];
 
 	// NEWS API URL
-	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=sports&apiKey=0dfc9750fdec4abe8f4faa8adff562ad';
+	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=sports&apiKey=' + process.env.NEWSAPI_TOKEN;
 
 	// send http get request
 	unirest.get(url)
@@ -235,7 +239,7 @@ function getActualiteCulturelle(req,res)
 	const replies = [];
 
 	// NEWS API URL
-	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=entertainment&apiKey=0dfc9750fdec4abe8f4faa8adff562ad';
+	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=entertainment&apiKey=' + process.env.NEWSAPI_TOKEN;
 
 	// send http get request
 	unirest.get(url)
@@ -271,7 +275,7 @@ function getActualiteDivers(req,res)
 	const replies = [];
 
 	// NEWS API URL
-	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=technology&apiKey=0dfc9750fdec4abe8f4faa8adff562ad';
+	const url = 'https://newsapi.org/v2/top-headlines?country=ma&category=technology&apiKey=' + process.env.NEWSAPI_TOKEN;
 
 	// send http get request
 	unirest.get(url)
@@ -309,7 +313,7 @@ function getAthan(req,res)
 	
 	const replies = [];
 	replies.push({ type: 'picture', content:'http://viaimage2.viafrance.com/img/img-1000x1000/2/8/3/283273_1000x1000.jpg'});
-	var googleAPIurl = 'https://maps.googleapis.com/maps/api/geocode/json?language=fr&address=' + location.raw + '&key=AIzaSyA54Jbwt_JMDBOQujGtB9jFwYzGYO-KAuw';
+	var googleAPIurl = 'https://maps.googleapis.com/maps/api/geocode/json?language=fr&address=' + location.raw + '&key=' + process.env.GMAPAPI_KEY;
 	unirest.get(googleAPIurl)
     .send()
     .end(response => {
@@ -330,7 +334,7 @@ function getAthan(req,res)
 					if (response.status == 200) 
 					{
 						
-						replies.push({ type: 'text', content:'Les horaires de prières le '+ d.getDate() + '/' + d.getMonth() + '/' + d.getFullYear() + ' à ' + location.raw + ':'});
+						replies.push({ type: 'text', content:'Les horaires de prières le '+ d.getDate() + '/' + d.getMonth() + '/' + d.getFullYear() + ' à ' + capitalizeFirstLetter(location.raw) + ':'});
 						replies.push({ type: 'text', content:'Salat Al-Fajr: ' + response.body.data.timings.Fajr});
 						replies.push({ type: 'text', content:'Salat Al-Dhuhr: ' + response.body.data.timings.Dhuhr});
 						replies.push({ type: 'text', content:'Salat Al-Asr: ' + response.body.data.timings.Asr});
@@ -354,6 +358,10 @@ function getAthan(req,res)
 			}
 	}
 	)
-	
-	
+}
+
+// TODO this function must be moved to Utils
+function capitalizeFirstLetter(string) 
+{
+	return string.charAt(0).toUpperCase() + string.slice(1);
 }
