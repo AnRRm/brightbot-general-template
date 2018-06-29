@@ -108,7 +108,7 @@ function getWeather(req, res) {
 		res.json({
 			replies: [
 						{ type: 'picture', content: getweatherpicture(weatherHolder.weather[0].description ) },
-						{ type: 'text', content: 'La météo ' + datetime.raw + ' à ' + location.raw + ':' },  
+						{ type: 'text', content: 'La météo ' + datetime.raw + ' à ' + capitalizeFirstLetter(location.raw) + ':' },  
 						{ type: 'text', content: weatherHolder.weather[0].description + ', ' + parseInt(weatherHolder.main.temp) + '°C'  },        
 					],
 				});
