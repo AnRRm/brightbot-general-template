@@ -57,7 +57,7 @@ function getweatherpicture(description)
 function getGreetingReply(req, res) {
 	
 	var userName = req.body.conversation.participant_data.userName;
-	if(undifined == userName)
+	if(undefined  == userName)
 	{
 		userName = '';
 	}
