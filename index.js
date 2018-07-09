@@ -57,6 +57,10 @@ function getweatherpicture(description)
 function getGreetingReply(req, res) {
 	
 	var userName = req.body.conversation.participant_data.userName;
+	if(undifined == userName)
+	{
+		userName = '';
+	}
 	
 	//anas
 	res.json({
