@@ -30,23 +30,22 @@ function getweatherpicture(description)
 	ret = '';
 	switch(description) {
     case 'légère pluie':
-        ret = 'http://icons.iconarchive.com/icons/handdrawngoods/sunny-weather/128/12-rain-umbrella-icon.png';
+        ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-showers-scattered-day-icon.png';
         break;
     case 'peu nuageux':
-        ret = 'http://icons.iconarchive.com/icons/fasticon/nature/128/Cloud-Sun-icon.png';
+        ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-clouds-icon.png';
         break;
 	case 'partiellement nuageux':
-	    ret = 'http://icons.iconarchive.com/icons/fasticon/nature/128/Cloud-Sun-icon.png';
+	    ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-clouds-icon.png';
         break;
 	case 'ciel dégagé':
-        ret = 'http://icons.iconarchive.com/icons/fasticon/nature/128/Sun-icon.png';
-		
+        ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-clear-icon.png';
         break;
 	case 'nuageux':
-        ret = 'http://icons.iconarchive.com/icons/fasticon/nature/128/Cloud-icon.png';
+        ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-many-clouds-icon.png';
         break;
 	case 'pluie modérée':
-        ret = 'http://icons.iconarchive.com/icons/double-j-design/super-mono-3d/128/weather-rain-icon.png';
+        ret = 'http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-showers-icon.png';
         break;
     default:
         ret = 'http://icons.iconarchive.com/icons/icons8/ios7/128/Weather-Partly-Cloudy-Rain-icon.png';
@@ -59,7 +58,10 @@ function getGreetingReply(req, res) {
 	
 	var userName = req.body.conversation.participant_data.userName;
 	
-	//anas
+	if(undefined == userName)
+	{
+		userName = "";
+	}
 	res.json({
 	replies: [
 	{ type: 'text', content: 'Bonjour ' + userName + '  🙂 '  },
@@ -76,20 +78,18 @@ function getWeather(req, res) {
 
 	weather.defaults({
         appid: process.env.OPENWMAP_ID,
-        method: 'coord',
+        method: 'name',
         mode: 'json',
         units: 'metric',
         lang: 'fr',
      });
+	 
 	const location_ = location.raw;
 	var d = new Date(datetime.iso);
-	var tmpdate = d.getDate();
-	d.setUTCHours(23,59,59,990);
-	
 	var timeStamp = d.getTime()/1000;
 
 	weather.forecast({
-        coord: {lat: location.lat, lon: location.lng},
+        location: location_,
         language: 'fr'
     }, function(err, data) {
 	if (!err) 
@@ -97,11 +97,9 @@ function getWeather(req, res) {
 		// on OK
 		var weatherHolder = null;
 		 if(data.list != undefined)
-			weatherHolder = data.list.find(p => (Math.abs(parseInt(p.dt)-parseInt(timeStamp)) < 500));
-
-
+			weatherHolder = data.list.find(p => (Math.abs(parseInt(p.dt)-parseInt(timeStamp)) < 5400 ));
 	if (!weatherHolder) 
-	{		
+	{
 		res.json({
 		replies: [
 		{ type: 'text', content: 'Désolé Je n\'arrive pas vous indiquer la météo à ' + capitalizeFirstLetter(location.raw) + ' le ' + datetime.raw}
@@ -110,22 +108,11 @@ function getWeather(req, res) {
 	}
 	else
 	{
-		var temperature_array = [];
-		var rain_array = [];
-		for(var i=data.list.indexOf(weatherHolder); i >= data.list.indexOf(weatherHolder) - 7 ; i--)
-		{
-			var weatherHolder_ = null;
-			weatherHolder_ = data.list[i];
-			if(null != data.list[i])
-			{
-				temperature_array.push(parseInt(weatherHolder_.main.temp));
-			}			
-		}
 		res.json({
 			replies: [
 						{ type: 'picture', content: getweatherpicture(weatherHolder.weather[0].description ) },
-						{ type: 'text', content: weatherHolder.weather[0].description   },
-						{ type: 'text', content:  Math.min.apply(null, temperature_array) + '°C' + '  -  ' + Math.max.apply(null, temperature_array) + '°C' }, 						
+						{ type: 'text', content: 'La météo ' + datetime.raw + ' à ' + location.raw + ':' },  
+						{ type: 'text', content: weatherHolder.weather[0].description + ', ' + parseInt(weatherHolder.main.temp) + '°C'  },        
 					],
 				});
 	}		
